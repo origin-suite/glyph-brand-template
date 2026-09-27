@@ -1,0 +1,20 @@
+/**
+ * Optional brand-wide base styles.
+ *
+ * Every rule MUST be scoped to the class ThemeProvider stamps, or it leaks
+ * into any app that links this sheet. Use only `var(--glyph-*)` tokens here —
+ * no raw hex, rem or px literals.
+ *
+ * Delete this file and the `globals` entry in src/index.ts if the brand
+ * needs no base styles.
+ */
+
+/*
+.theme-brand-template {
+  background: var(--glyph-color-surface);
+  color: var(--glyph-color-text);
+  font-family: var(--glyph-font-sans);
+  font-size: var(--glyph-font-size-md);
+  line-height: var(--glyph-font-leading-normal);
+}
+*/

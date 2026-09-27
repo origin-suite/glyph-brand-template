@@ -1,0 +1,20 @@
+/**
+ * Self-hosted @font-face declarations for this brand.
+ *
+ * Delete this file if the brand uses a hosted stylesheet (Google Fonts, Adobe)
+ * — point `fontDefinition` in src/index.ts at that URL instead. Only one of the
+ * two approaches is used per brand.
+ *
+ * If you do self-host: drop the .woff2 files in assets/fonts/, uncomment below,
+ * and set `fontDefinition` to this sheet's URL.
+ */
+
+/*
+@font-face {
+  font-family: 'Brand Face';
+  src: url('./fonts/brand-face-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+*/

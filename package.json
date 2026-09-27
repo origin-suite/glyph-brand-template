@@ -1,0 +1,32 @@
+{
+  "name": "@brand/brand",
+  "version": "0.0.0",
+  "description": "Glyph brand theme. Rename this package before the first commit.",
+  "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./theme.css": "./dist/theme.css",
+    "./fonts.css": "./dist/fonts.css",
+    "./globals.css": "./dist/globals.css",
+    "./fonts/*": "./dist/fonts/*"
+  },
+  "scripts": {
+    "build": "tsc && node scripts/build-css.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "peerDependencies": {
+    "@originsuite/glyph": ">=0.2.0 <1"
+  },
+  "devDependencies": {
+    "@originsuite/glyph": "^0.2.0",
+    "typescript": "^5.5.3",
+    "vitest": "^2.1.9"
+  }
+}
