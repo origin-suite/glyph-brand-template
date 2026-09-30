@@ -1,13 +1,14 @@
 /**
- * Emit dist/theme.css — the CSS-only consumption path — and copy the hand-
- * written sheets into dist so the exports map resolves.
+ * Emit dist/theme.css — the CSS-only consumption path — copy the hand-written
+ * sheets into dist, and mirror self-hosted webfonts to where the exports map
+ * says they are.
  *
- * TEMPORARY. `glyph theme build` (ORI-425) replaces this whole script with a
+ * TEMPORARY. `glyph theme build` (ORI-407) replaces this whole script with a
  * one-line change to package.json's build script. Until then this does the same
  * job with the public token API, so `pnpm build` produces everything the
  * exports map promises.
  */
-import { copyFile, writeFile, readdir } from 'node:fs/promises';
+import { copyFile, writeFile, readdir, readFile, cp } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { themeToCSSVars } from '@originsuite/glyph/tokens';
@@ -15,6 +16,8 @@ import { brandTheme } from '../dist/index.js';
 
 const DIST = 'dist';
 const SRC = 'src';
+const FONT_SRC = join('assets', 'fonts');
+const FONTS_SHEET = join(SRC, 'fonts.css');
 
 // The static sheet is scoped to `.theme-<name>`, which is what a CSS-only
 // consumer wraps its markup in. ThemeProvider stamps its own unique class
@@ -35,8 +38,55 @@ for (const file of await readdir(SRC)) {
   if (file.endsWith('.css')) await copyFile(join(SRC, file), join(DIST, file));
 }
 
-if (existsSync(join('assets', 'fonts'))) {
-  console.log('assets/fonts exists — copy it into dist/fonts/ when you self-host.');
+/**
+ * Which webfont files this brand actually claims to self-host.
+ *
+ * Derived from src/fonts.css rather than from whether assets/fonts happens to
+ * exist, because there are two opposite failure modes and both are silent:
+ *
+ *   - the sheet names a face that was never vendored
+ *   - faces were vendored but never copied into dist
+ *
+ * Either way the browser falls back to the next family in the stack, which
+ * renders. Nothing errors, the layout is fine, the brand is simply absent.
+ * This script previously only *logged* a reminder and copied nothing, so
+ * `./fonts/*` in the exports map resolved into a directory that did not exist
+ * (ORI-566, found when origin-brand became the first brand to self-host).
+ *
+ * **Comments are stripped first.** The unedited template ships this sheet with
+ * every `@font-face` commented out and an example `url('./fonts/…')` inside the
+ * comment. Matching that would make a generic template fail its own build.
+ */
+async function declaredFaces() {
+  if (!existsSync(FONTS_SHEET)) return [];
+  const sheet = (await readFile(FONTS_SHEET, 'utf8')).replace(
+    /\/\*[\s\S]*?\*\//g,
+    ''
+  );
+  return [...sheet.matchAll(/url\(\s*['"]\.\/fonts\/([^'"]+)['"]/g)].map(
+    (m) => m[1]
+  );
 }
 
-console.log(`wrote ${DIST}/theme.css (${Object.keys(vars).length} tokens) for ${selector}`);
+const faces = await declaredFaces();
+
+if (faces.length === 0) {
+  // A brand on hosted fonts (Google, Adobe) legitimately vendors nothing, and
+  // so does the unedited template. Nothing to do, and not a problem.
+  console.log('no self-hosted faces declared in src/fonts.css — skipping fonts');
+} else {
+  const missing = faces.filter((face) => !existsSync(join(FONT_SRC, face)));
+  if (missing.length > 0) {
+    throw new Error(
+      `${FONTS_SHEET} references ${missing.length} face(s) absent from ` +
+        `${FONT_SRC}: ${missing.join(', ')}. A missing face falls back to the ` +
+        `next family in the stack, which renders — so this cannot be a warning.`
+    );
+  }
+  await cp(FONT_SRC, join(DIST, 'fonts'), { recursive: true });
+  console.log(`copied ${faces.length} declared face(s) into ${DIST}/fonts/`);
+}
+
+console.log(
+  `wrote ${DIST}/theme.css (${Object.keys(vars).length} tokens) for ${selector}`
+);
