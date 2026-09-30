@@ -43,8 +43,14 @@ Every item below was decided on purpose. Do not "fix" one without reading the ti
 - **`scripts/build-css.mjs` is a stopgap, not tech debt.** `tsc` cannot emit the
   `theme.css` the exports map promises. `glyph theme build` replaces it when Glyph 0.3.0
   ships — a one-line change to the build script plus deleting the file.
-- **`package.json` is named `@brand/brand`** — a placeholder. Renaming it self-disables
-  the template-only tests, which is intended behaviour, not a side effect.
+- **`package.json` is named `@brand/brand`** — a placeholder, and a deliberate
+  non-name. Renaming it self-disables the template-only tests, which is intended
+  behaviour, not a side effect. **Rename to `@originsuite/<brand>-brand`** — the scope
+  is always `@originsuite`, including for client brands. Nothing here is published, so
+  the name is never resolved against the registry; it is only an import specifier.
+  Settled 2026-09-30 (ORI-404). The alternative, `@<brand>/brand`, would survive a
+  client handover untouched, which the chosen form does not — a transferred repo gets
+  renamed along with its consumers' imports.
 - **`private: true` stays.** Nothing here publishes, and it blocks an accidental
   `npm publish`.
 - **`include-component-in-tag: false` stays.** release-please's manifest mode defaults

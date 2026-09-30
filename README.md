@@ -9,8 +9,11 @@ nothing here is published to npm.
 
 ## First run
 
-1. **Rename the package.** `package.json` ships as `@brand/brand` — change it to
-   `@<brand>/brand`. Repo name is `<brand>-brand`.
+1. **Rename the package.** `package.json` ships as `@brand/brand`, a deliberate
+   non-name — change it to `@originsuite/<brand>-brand`. Repo name is
+   `<brand>-brand`. The scope is always `@originsuite`, including for client
+   brands: it is a scope the org actually controls, and nothing here is
+   published, so it is never resolved against the registry.
 2. **Set the theme name.** `name:` in `src/index.ts` must be kebab-case; the CSS
    selector `.theme-<name>` is derived from it, so pick it once and leave it.
 3. **Write the palette.** Every token in `src/index.ts` shows its `glyphLite`
@@ -37,7 +40,7 @@ pnpm add git+ssh://git@github.com/origin-suite/<brand>-brand.git#v1.0.0
 
 ```tsx
 import { ThemeProvider } from '@originsuite/glyph/theme';
-import { brandTheme } from '@<brand>/brand';
+import { brandTheme } from '@originsuite/<brand>-brand';
 
 <ThemeProvider theme={brandTheme}>
   <App />
@@ -52,7 +55,7 @@ No Glyph change is needed to consume a brand — `ThemeProvider` accepts any
 Link the generated sheet and wrap the markup in the theme class:
 
 ```html
-<link rel="stylesheet" href="node_modules/@<brand>/brand/dist/theme.css" />
+<link rel="stylesheet" href="node_modules/@originsuite/<brand>-brand/dist/theme.css" />
 <div class="theme-<name>">…</div>
 ```
 
@@ -102,6 +105,12 @@ The version starts at `0.0.0`. To cut a brand's first release as `v1.0.0`, put
 
 The client owns the token values, the assets and the rationale behind them.
 Origin owns Glyph and the token contract.
+
+The package name is a separate question from ownership. It sits under
+`@originsuite` regardless, so a repo handed over on client exit is renamed at
+that point, along with the imports in whatever consumes it. Decided 2026-09-30;
+the alternative (`@<brand>/brand`, which survives a transfer untouched) was
+considered and not taken.
 
 ## Repo conventions
 
