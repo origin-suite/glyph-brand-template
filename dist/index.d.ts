@@ -20,7 +20,7 @@
  *
  * Usage:
  *   import { ThemeProvider } from '@originsuite/glyph/theme';
- *   import { brandTheme } from '@brand/brand';
+ *   import { brandTheme } from '@originsuite/<brand>-brand';
  *
  *   <ThemeProvider theme={brandTheme}>
  *     <App />
