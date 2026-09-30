@@ -47,6 +47,13 @@ Every item below was decided on purpose. Do not "fix" one without reading the ti
   the template-only tests, which is intended behaviour, not a side effect.
 - **`private: true` stays.** Nothing here publishes, and it blocks an accidental
   `npm publish`.
+- **`include-component-in-tag: false` stays.** release-please's manifest mode defaults
+  it to *true* and derives the component from the package name, so tags would come out
+  as `<package>-v1.0.0` — `origin-brand-v1.0.0`, `acme-brand-v1.0.0`, and for this
+  unrenamed template `brand-v1.0.0`. That breaks three things: the documented
+  `#v1.0.0` install command 404s, the ref differs per brand so no copy-pasteable
+  command exists, and `glyph theme init` (ORI-166) has no predictable tag to pin.
+  Found the hard way when origin-brand cut its first release (ORI-404).
 - **pnpm settings live in `pnpm-workspace.yaml`** (`allowBuilds: esbuild`), not in
   `package.json`'s `pnpm` field — pnpm 11 stopped reading that field. vitest needs
   esbuild's postinstall, and CI needs the setting committed.
