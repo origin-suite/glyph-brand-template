@@ -30,19 +30,41 @@ Every item below was decided on purpose. Do not "fix" one without reading the ti
   `git diff --exit-code dist`, so rebuild and commit it before pushing.
 - **Source maps are off.** `dist` is reviewed by hand; maps would double its diff on
   every palette change.
-- **The value check in `src/baseline-drift.test.ts` is skipped on purpose.**
-  `src/index.ts` documents the baseline rebuilt in ORI-422, which exists only on glyph's
-  `main`, while published 0.2.0 still carries the pre-rebuild palette — **32 of 65 leaves
-  differ, and that is expected**. Unskip it only when the dev dependency moves to Glyph
-  >= 0.3.0. Do not delete it and do not rewrite values to make it pass.
-- **This repo does not implement contract or AA-contrast assertions.** They ship from
-  Glyph and are imported, because a template's files are *copied* at instantiation and a
-  local copy would fork into every brand repo the moment it is created. The three
-  `it.todo` entries in `src/index.test.ts` hold the place until Glyph exports the
-  validators (ORI-403). **Never reimplement them here.**
-- **`scripts/build-css.mjs` is a stopgap, not tech debt.** `tsc` cannot emit the
-  `theme.css` the exports map promises. `glyph theme build` replaces it when Glyph 0.3.0
-  ships — a one-line change to the build script plus deleting the file.
+- **The value check in `src/baseline-drift.test.ts` is live** as of the move to
+  `0.3.0-banana.0` (2026-09-30), and passes. It was skipped while this repo installed
+  published 0.2.0, whose pre-rebuild palette differed from the ORI-422 baseline
+  `src/brandTheme.ts` documents in **32 of 65 leaves**. It now guards the real failure:
+  a baseline value moving without this file following. Do not delete it and do not
+  rewrite values to make it pass — if it fails, the annotated file is stale.
+- **This repo does not implement contract, AA-contrast, convention or globals
+  assertions.** They ship from Glyph and are imported, because a template's files are
+  *copied* at instantiation and a local copy would fork into every brand repo the moment
+  it is created. All four validators are wired in `src/index.test.ts` as of the 0.3.0
+  dep move; the `it.todo` placeholders are gone. **Never reimplement them here.**
+- **The suite is driven by `collectThemes`, never a hand-written list.** It reads the
+  barrel's namespace — the same call `glyph theme build` makes — so the tests cannot
+  cover a different set of themes than the build emits. `collectThemes` filters by
+  `isTheme`, so a broken export silently *shrinks* the collection rather than failing;
+  the "exports at least one theme" assertion is what stops that passing quietly.
+- **One theme per file, re-exported from `src/index.ts`.** A brand with several
+  directions or a light/dark/alt family adds a file and a barrel line, nothing else.
+  Relative specifiers carry a **`.js` extension** even though the sources are `.ts`:
+  pure ESM compiled by `tsc`, which does not rewrite specifiers, and Node's ESM
+  resolver does no extension guessing.
+- **`glyph theme build` emits the CSS**, replacing the `scripts/build-css.mjs` stopgap
+  (deleted 2026-09-30). `tsc` cannot emit the `theme.css` the exports map promises, so
+  the build is `tsc -p tsconfig.build.json && glyph theme build`.
+- **The static sheet keys on `[data-theme="<name>"]`, not `.theme-<name>`.** The stopgap
+  emitted the class form; the CLI does not, and the CLI is correct — an element carries
+  many theme classes (a derived theme's wrapper has its own plus its base's, via
+  `globalsScope`) but exactly one `data-theme`, so two class-keyed blocks could match
+  the same wrapper at equal specificity. **Any repo migrating off the stopgap changes
+  its public CSS contract and needs a major bump**, not a quiet swap.
+- **`tsconfig.json` checks, `tsconfig.build.json` emits.** The checking config includes
+  the test files on purpose: an editor type-checks a file using the nearest tsconfig
+  that *includes* it, so excluding tests drops them into an inferred project and they
+  show errors in the IDE that `tsc` and CI never see. CI runs `pnpm typecheck` before
+  `pnpm build`.
 - **`package.json` is named `@brand/brand`** — a placeholder, and a deliberate
   non-name. Renaming it self-disables the template-only tests, which is intended
   behaviour, not a side effect. **Rename to `@originsuite/<brand>-brand`** — the scope

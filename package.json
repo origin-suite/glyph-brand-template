@@ -19,15 +19,17 @@
     "./fonts/*": "./dist/fonts/*"
   },
   "scripts": {
-    "build": "tsc && node scripts/build-css.mjs",
+    "build": "tsc -p tsconfig.build.json && glyph theme build",
+    "typecheck": "tsc",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "peerDependencies": {
-    "@originsuite/glyph": ">=0.2.0 <1"
+    "@originsuite/glyph": ">=0.3.0-banana.0 <1"
   },
   "devDependencies": {
-    "@originsuite/glyph": "^0.2.0",
+    "@originsuite/glyph": "0.3.0-banana.0",
+    "@types/node": "^22.20.4",
     "typescript": "^5.5.3",
     "vitest": "^2.1.9"
   }

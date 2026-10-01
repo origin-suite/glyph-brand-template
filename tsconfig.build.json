@@ -1,0 +1,12 @@
+{
+  // The emitting config. Test files are excluded so they never reach dist.
+  //
+  // `include` and `exclude` are NOT merged through `extends` — the child
+  // replaces them outright — so both are restated rather than inherited.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
+}

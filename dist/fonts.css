@@ -5,7 +5,7 @@
  * — point `fontDefinition` in src/index.ts at that URL instead. Only one of the
  * two approaches is used per brand.
  *
- * If you do self-host: drop the .woff2 files in assets/fonts/, uncomment below,
+ * If you do self-host: drop the .woff2 files in src/fonts/, uncomment below,
  * and set `fontDefinition` to this sheet's URL.
  */
 

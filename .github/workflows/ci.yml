@@ -28,6 +28,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Covers the test files, which tsconfig.build.json excludes so they never
+      # reach dist. Runs before Build so a type error fails the run without
+      # first regenerating dist and muddying the freshness diff.
+      - name: Typecheck
+        run: pnpm typecheck
+
       - name: Build
         run: pnpm build
 
