@@ -14,21 +14,40 @@ nothing here is published to npm.
    `<brand>-brand`. The scope is always `@originsuite`, including for client
    brands: it is a scope the org actually controls, and nothing here is
    published, so it is never resolved against the registry.
-2. **Set the theme name.** `name:` in `src/index.ts` must be kebab-case; the CSS
-   selector `.theme-<name>` is derived from it, so pick it once and leave it.
-3. **Write the palette.** Every token in `src/index.ts` shows its `glyphLite`
+2. **Reset the version.** This repo is released, so a repo created from it
+   inherits that state: `package.json` `version`, `.release-please-manifest.json`
+   and a `CHANGELOG.md` describing *the template's* history. Set both versions to
+   `0.0.0` and truncate `CHANGELOG.md` to its heading, or release-please proposes
+   the wrong number and files a changelog with someone else's entries in it.
+3. **Set the theme name.** `name:` in `src/brandTheme.ts` must be kebab-case; the
+   CSS selector `[data-theme="<name>"]` is derived from it, so pick it once and
+   leave it.
+4. **Write the palette.** Every token in `src/brandTheme.ts` shows its `glyphLite`
    default with a comment explaining what it is for. Change what the brand needs,
    delete what it doesn't — `createTheme` merges onto the baseline, so an omitted
    token keeps the baseline value.
-4. **Fonts.** Either point `fontDefinition` at a hosted stylesheet (Google, Adobe)
+5. **Fonts.** Either point `fontDefinition` at a hosted stylesheet (Google, Adobe)
    and delete `src/fonts.css`, or self-host: drop `.woff2` files in
-   `assets/fonts/`, fill in `src/fonts.css`, and point `fontDefinition` at it.
-5. **Globals.** Optional. Delete `src/globals.css` and the `globals` entry if the
-   brand needs no base styles. Every rule in it must be scoped to
-   `.theme-<name>` or it leaks into the consuming app.
-6. `pnpm install && pnpm build && pnpm test`, then **commit `dist`**.
-7. Set the repo's custom properties and access — see
+   `src/fonts/`, fill in `src/fonts.css`, and point `fontDefinition` at it.
+   **Everything the package ships lives under `src/`** — `glyph theme build`
+   mirrors every non-`.ts` file there into `dist/`, preserving nesting, and
+   reads nothing outside it. Logos and other static files go in `src/assets/`.
+6. **Globals.** Optional. Delete `src/globals.css` and the `globals` entry if the
+   brand needs no base styles. Every rule in it must be scoped with
+   `@scope (.theme-<name>) to ([data-theme])` or it leaks into the consuming app
+   and into any nested provider — `validateThemeGlobals` checks both halves, and
+   the test suite runs it automatically once a theme declares `globals`.
+7. `pnpm install && pnpm build && pnpm test`, then **commit `dist`**.
+8. Set the repo's custom properties and access — see
    [Repo conventions](#repo-conventions).
+
+### More than one theme
+
+A brand presenting several directions, or a light/dark/alt family, adds one file
+per theme beside `src/brandTheme.ts` and one `export … from './<file>.js'` line
+in `src/index.ts`. Nothing else changes: `glyph theme build` and the test suite
+both read the barrel's namespace through `collectThemes`, so every theme is
+built into one `dist/theme.css` and validated individually.
 
 ## Consuming this package
 
@@ -52,12 +71,17 @@ No Glyph change is needed to consume a brand — `ThemeProvider` accepts any
 
 ### CSS only
 
-Link the generated sheet and wrap the markup in the theme class:
+Link the generated sheet and set the theme attribute on a wrapper:
 
 ```html
 <link rel="stylesheet" href="node_modules/@originsuite/<brand>-brand/dist/theme.css" />
-<div class="theme-<name>">…</div>
+<div data-theme="<name>">…</div>
 ```
+
+The sheet keys on `[data-theme]`, not a class. An element can carry several
+theme classes — a derived theme's wrapper has its own plus its base's, via
+`globalsScope` — but exactly one `data-theme`, so two blocks can never match the
+same wrapper at equal specificity and leave file order to decide which paints.
 
 Then read tokens as `var(--glyph-color-primary)` and so on.
 

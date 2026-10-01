@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import { glyphLite } from '@originsuite/glyph/themes';
-import { brandTheme } from './index';
+import { brandTheme } from './index.js';
 
 /**
  * Template-only invariants: they assert this repo is still an unedited
@@ -28,7 +28,7 @@ const IS_UNEDITED_TEMPLATE = pkg.name === '@brand/brand';
  * packages/glyph/src/themes/baselineDefaults.test.ts documents hitting.
  */
 function tokensWrittenDown(): Record<string, Set<string>> {
-  const source = readFileSync(new URL('./index.ts', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('./brandTheme.ts', import.meta.url), 'utf8');
   const written: Record<string, Set<string>> = {};
   let group: string | null = null;
 
@@ -50,21 +50,20 @@ describe.skipIf(!IS_UNEDITED_TEMPLATE)(
   'the unedited template tracks the Glyph baseline',
   () => {
     /**
-     * SKIPPED until the dev dependency moves to Glyph 0.3.0.
+     * Live since the dev dependency moved to 0.3.0-banana.0.
      *
-     * src/index.ts documents the baseline rebuilt in ORI-422, which exists only
-     * on glyph's main branch. Published 0.2.0 still carries the pre-rebuild
-     * palette, so 32 of 65 leaves differ right now — expected, not drift. The
-     * values are written as explicit overrides, so a brand renders the intended
-     * palette either way; only the "this is the glyphLite default" comments are
-     * wrong against 0.2.0.
+     * It was skipped while this repo installed published 0.2.0: brandTheme.ts
+     * documents the baseline rebuilt in ORI-422, so 32 of 65 leaves differed —
+     * expected, not drift. The values are written as explicit overrides, so a
+     * brand rendered the intended palette either way; only the "this is the
+     * glyphLite default" comments were wrong.
      *
-     * Unskip when package.json installs >=0.3.0. It then guards the real
-     * failure: a baseline value moving without this file following. That has
-     * already happened once inside Glyph — the template's `display` named the
-     * sans stack for years after the baseline moved to serif.
+     * It now guards the real failure: a baseline value moving without this
+     * file following. That has already happened once inside Glyph — the
+     * template's `display` named the sans stack for years after the baseline
+     * moved to serif.
      */
-    it.skip('every token value equals the installed glyphLite baseline (needs Glyph 0.3.0)', () => {
+    it('every token value equals the installed glyphLite baseline', () => {
       expect(brandTheme.tokens).toEqual(glyphLite.tokens);
     });
 
@@ -80,7 +79,15 @@ describe.skipIf(!IS_UNEDITED_TEMPLATE)(
       const written = tokensWrittenDown();
       const absent: string[] = [];
 
-      for (const [group, tokens] of Object.entries(glyphLite.tokens)) {
+      // Annotated because GlyphTokens is an interface, so it has no implicit
+      // index signature and Object.entries falls through to the `{}` overload.
+      // Every group is Record<string, string> by the contract.
+      const groups = Object.entries(glyphLite.tokens) as [
+        string,
+        Record<string, string>,
+      ][];
+
+      for (const [group, tokens] of groups) {
         for (const key of Object.keys(tokens)) {
           if (!written[group]?.has(key)) absent.push(`${group}.${key}`);
         }

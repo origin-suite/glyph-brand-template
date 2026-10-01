@@ -12,8 +12,16 @@
     "skipLibCheck": true,
     "noEmitOnError": true,
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    // Checking only — tsconfig.build.json is the one that emits.
+    //
+    // The test files are included on purpose. An editor type-checks a file
+    // using the nearest tsconfig that INCLUDES it, so excluding them here
+    // would drop them into an inferred project with default options — which
+    // is how a test file shows an error in the IDE that `tsc` and CI never
+    // see. `pnpm typecheck` and the editor now resolve the same program.
+    "noEmit": true
   },
   "include": ["src"],
-  "exclude": ["src/**/*.test.ts"]
+  "exclude": []
 }

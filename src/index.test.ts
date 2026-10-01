@@ -1,46 +1,79 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
-import { brandTheme } from './index';
+import {
+  type CollectedTheme,
+  collectThemes,
+  validateTheme,
+  validateThemeContrast,
+  validateThemeConventions,
+  validateThemeGlobals,
+  validateThemeSet,
+} from '@originsuite/glyph/theme';
+import * as brand from './index.js';
 
 /**
- * The real contract, AA-contrast and convention checks are NOT written here on
- * purpose. They ship from Glyph so every brand repo imports one implementation
- * instead of forking a copy at "Use this template" time — see ORI-403. The
- * imports below land once Glyph exports them:
+ * The contract, AA-contrast, convention and globals checks are NOT
+ * reimplemented here. They ship from Glyph so every brand repo imports one
+ * implementation instead of forking a copy at "Use this template" time
+ * (ORI-403). A local copy is exactly the drift that caused.
  *
- *   import { validateTheme, validateThemeContrast } from '@originsuite/glyph/theme';
- *
- *   it('is a valid theme', () => expect(validateTheme(brandTheme)).toEqual([]));
- *   it('meets AA', () => expect(validateThemeContrast(brandTheme)).toEqual([]));
- *
- * Do not reimplement them here. A local copy is exactly the drift ORI-403
- * exists to prevent.
+ * Everything is driven off `collectThemes`, the same call `glyph theme build`
+ * makes, so the suite can never test a different set of themes than the build
+ * emits. Add a theme by adding a file and a line in src/index.ts; nothing
+ * here changes.
  */
-describe('brandTheme', () => {
-  it('builds through createTheme without throwing', () => {
-    expect(brandTheme).toBeTypeOf('object');
-    expect(brandTheme.tokens).toBeTypeOf('object');
+const themes = collectThemes(brand);
+
+describe('the package barrel', () => {
+  /**
+   * `collectThemes` filters by `isTheme`, so a broken or renamed export does
+   * not fail — it silently vanishes from the collection and every per-theme
+   * block below still passes, just over fewer themes. This is the only
+   * assertion standing between that and a green suite.
+   */
+  it('exports at least one theme', () => {
+    expect(themes.length).toBeGreaterThan(0);
   });
 
-  it('has a kebab-case name, which the CSS selector is derived from', () => {
-    expect(brandTheme.name).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+  /**
+   * Two themes sharing a `name` emit the same block into theme.css and the
+   * second silently overwrites the first. Vacuous for a single-theme brand,
+   * load-bearing the moment a second direction is added.
+   */
+  it('has no two themes claiming the same name', () => {
+    expect(validateThemeSet(themes)).toEqual([]);
+  });
+});
+
+describe.each<CollectedTheme>(themes)('$exportName', ({ theme }) => {
+  it('satisfies the token contract', () => {
+    expect(validateTheme(theme)).toEqual([]);
   });
 
-  it('carries every token group the contract requires', () => {
-    expect(Object.keys(brandTheme.tokens).sort()).toEqual([
-      'borderWidth',
-      'color',
-      'font',
-      'motion',
-      'radius',
-      'shadow',
-      'space',
-    ]);
+  it('meets the documented AA contrast pairs', () => {
+    expect(validateThemeContrast(theme)).toEqual([]);
   });
 
-  it.todo('satisfies the token contract — needs validateTheme exported (ORI-403)');
-  it.todo('meets the documented AA contrast pairs — needs validateThemeContrast exported (ORI-403)');
-  it.todo('scopes globals.css to .theme-<name> — needs validateThemeGlobals exported (ORI-403)');
+  it('expresses font sizes in rem', () => {
+    expect(validateThemeConventions(theme)).toEqual([]);
+  });
+
+  /**
+   * Covers both states in one assertion rather than an `it.todo`, so a globals
+   * sheet added later is validated with no new wiring. A sheet scoped to the
+   * wrong class still renders — it simply matches nothing, or leaks into a
+   * nested provider — which is why this cannot be left until someone
+   * remembers.
+   */
+  it('scopes its globals sheet correctly, or declares none', () => {
+    if (!theme.globals) {
+      expect(theme.globals).toBeFalsy();
+      return;
+    }
+    const css = readFileSync(fileURLToPath(theme.globals), 'utf8');
+    expect(validateThemeGlobals(theme, css)).toEqual([]);
+  });
 });
 
 /**
@@ -52,19 +85,20 @@ describe('brandTheme', () => {
  *
  * Comments are stripped before matching, because the template ships this sheet
  * with every `@font-face` commented out and an example `url('./fonts/…')`
- * inside the comment (see scripts/build-css.mjs, which does the same).
+ * inside the comment.
  *
  * Both trees are checked, and they fail differently:
  *
- *   - assets/fonts is the source — a face named but never vendored
+ *   - src/fonts is the source — a face named but never vendored.
+ *     `glyph theme build` mirrors every non-.ts file under src/ into dist/,
+ *     so that is where vendored faces live; the root assets/ directory is
+ *     not read by the build at all.
  *   - dist/fonts is what `./fonts/*` in the exports map actually resolves to,
- *     populated by a copy step in the build
+ *     populated by the build
  *
- * The copy step is the one that was missing: this script only *logged* a
- * reminder, so the export pointed into a directory that did not exist
- * (ORI-566). Asserting only the source would have reported the repo healthy
- * with nothing to serve. Either failure degrades to the next family in the
- * stack, which renders — nothing looks broken, the brand is just absent.
+ * Asserting only the source would report the repo healthy with nothing to
+ * serve (ORI-566). Either failure degrades to the next family in the stack,
+ * which renders — nothing looks broken, the brand is just absent.
  */
 describe('self-hosted webfonts', () => {
   const declared = (() => {
@@ -80,7 +114,7 @@ describe('self-hosted webfonts', () => {
 
   it('declares no faces, or every declared face is vendored and shipped', () => {
     const absent = declared.flatMap((face) =>
-      ['assets/fonts', 'dist/fonts']
+      ['src/fonts', 'dist/fonts']
         .filter((dir) => !existsSync(`${dir}/${face}`))
         .map((dir) => `${dir}/${face}`)
     );
