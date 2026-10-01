@@ -1,6 +1,6 @@
 {
   "name": "@brand/brand",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Glyph brand theme. Rename this package before the first commit.",
   "type": "module",
   "private": true,

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/origin-suite/glyph-brand-template/compare/v1.0.0...v1.1.0) (2026-10-01)
+
+
+### Features
+
+* build with glyph theme build and support theme families ([b3d431f](https://github.com/origin-suite/glyph-brand-template/commit/b3d431f67b1aaccd302ab58e97aeabd739232fbc))
+
 ## 1.0.0 (2026-09-30)
 
 
