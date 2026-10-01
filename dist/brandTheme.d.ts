@@ -26,4 +26,4 @@
  *     <App />
  *   </ThemeProvider>
  */
-export declare const brandTheme: any;
+export declare const brandTheme: import("@originsuite/glyph").GlyphTheme;
