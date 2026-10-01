@@ -6,3 +6,5 @@
 # here rather than by a local `pnpm approve-builds` — CI needs it too.
 allowBuilds:
   esbuild: true
+minimumReleaseAgeExclude:
+  - '@originsuite/glyph@0.3.0-banana.1'
