@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@originsuite/glyph':
-        specifier: 0.3.0-banana.1
-        version: 0.3.0-banana.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        specifier: 0.3.0-banana.2
+        version: 0.3.0-banana.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@types/node':
         specifier: ^22.20.4
         version: 22.20.4
@@ -180,8 +180,8 @@ packages:
     os: [linux]
     libc: [glibc]
 
-  '@originsuite/glyph@0.3.0-banana.1':
-    resolution: {integrity: sha512-6I5LrEstUkys11ALv0TJQtZNcXcxUn0rqfvu/oAOnTcISn0IOqC06eCQb4AWAi+X1frnJMpVhRork0SwIYJ90g==}
+  '@originsuite/glyph@0.3.0-banana.2':
+    resolution: {integrity: sha512-USLyPh1Ob+qkw6mfVcX3aBZXMrw0w1y7olTmbeUicVF9mD8yuvpnf9E0LovQ+snPgllcdirK9gsTuKIpfmEEXA==}
     engines: {node: '>=20'}
     hasBin: true
     peerDependencies:
@@ -683,7 +683,7 @@ snapshots:
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true
 
-  '@originsuite/glyph@0.3.0-banana.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@originsuite/glyph@0.3.0-banana.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
       react: 19.3.0
       react-aria: 3.52.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)

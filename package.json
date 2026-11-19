@@ -19,16 +19,17 @@
     "./fonts/*": "./dist/fonts/*"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && glyph theme build",
+    "build": "tsc -p tsconfig.build.json && glyph theme build --tsconfig tsconfig.build.json",
+    "check": "glyph theme check",
     "typecheck": "tsc",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "peerDependencies": {
-    "@originsuite/glyph": ">=0.3.0-banana.0 <1"
+    "@originsuite/glyph": ">=0.3.0-banana.2 <1"
   },
   "devDependencies": {
-    "@originsuite/glyph": "0.3.0-banana.1",
+    "@originsuite/glyph": "0.3.0-banana.2",
     "@types/node": "^22.20.4",
     "typescript": "^5.5.3",
     "vitest": "^2.1.9"

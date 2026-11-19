@@ -34,6 +34,48 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      # The fast gate, and the only step that validates without touching the
+      # tree: `check` compiles to a scratch dir, so a contrast or contract
+      # finding fails here having written nothing. Build cannot do that --
+      # its leading `tsc` emits dist/*.js before validation decides whether
+      # to write theme.css, so a blocked build leaves dist half-updated.
+      #
+      # Takes no --tsconfig. The CLI overrides noEmit for its scratch compile,
+      # unlike `build`, which has to honour this repo's real outDir.
+      #
+      # The report goes to the run summary, where a reviewer sees it without
+      # opening the log. --markdown is one row per theme rather than one per
+      # finding, so it still says something on a run with nothing wrong.
+      #
+      # The two streams carry different halves and are kept apart: the table is
+      # on stdout, and the findings -- the token pair and the measured ratio --
+      # are on stderr. The table alone only reaches "1 finding", so stderr is
+      # fenced into the summary under it and echoed to the log.
+      #
+      # `--silent` is load-bearing, not noise reduction. Without it pnpm puts
+      # its `$ glyph ...` banner and, on a failing run, `[ELIFECYCLE] Command
+      # failed` on stdout, and both land in the summary table.
+      #
+      # No `--` before the flag. pnpm 11 forwards the separator itself, and the
+      # CLI reads it as a positional and exits 2 on `unknown positional(s)`.
+      - name: Validate themes
+        run: |
+          status=0
+          pnpm --silent run check --markdown \
+            > "$RUNNER_TEMP/themes.md" 2> "$RUNNER_TEMP/findings.txt" || status=$?
+          cat "$RUNNER_TEMP/themes.md" >> "$GITHUB_STEP_SUMMARY"
+          if [ -s "$RUNNER_TEMP/findings.txt" ]; then
+            { echo; echo '```'; cat "$RUNNER_TEMP/findings.txt"; echo '```'; } \
+              >> "$GITHUB_STEP_SUMMARY"
+            cat "$RUNNER_TEMP/findings.txt" >&2
+          fi
+          exit $status
+
+      # Runs on pull_request too, not just the merge to main. `check` above is
+      # the PR gate for validation, but it writes nothing and so cannot answer
+      # the question the next step asks -- and a stale dist has to block the
+      # PR. Catching it on main is too late: release-please tags that commit,
+      # and the tag is what consumers pin.
       - name: Build
         run: pnpm build
 
