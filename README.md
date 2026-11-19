@@ -10,10 +10,15 @@ nothing here is published to npm.
 ## First run
 
 1. **Rename the package.** `package.json` ships as `@brand/brand`, a deliberate
-   non-name — change it to `@originsuite/<brand>-brand`. Repo name is
-   `<brand>-brand`. The scope is always `@originsuite`, including for client
-   brands: it is a scope the org actually controls, and nothing here is
-   published, so it is never resolved against the registry.
+   non-name. The repo name is `<brand>-brand` either way; the **scope follows who
+   can end up owning the repo**:
+   - An **Origin** brand → `@originsuite/<brand>-brand`.
+   - A **client** brand → `@<client>/brand`, so a repo handed over on client exit
+     transfers untouched — nothing to rename, and no change to the imports in
+     whatever consumes it.
+
+   Nothing here is published, so the name is never resolved against the registry;
+   it is only an import specifier. See [Ownership](#ownership).
 2. **Reset the version.** This repo is released, so a repo created from it
    inherits that state: `package.json` `version`, `.release-please-manifest.json`
    and a `CHANGELOG.md` describing *the template's* history. Set both versions to
@@ -65,6 +70,9 @@ import { brandTheme } from '@originsuite/<brand>-brand';
   <App />
 </ThemeProvider>;
 ```
+
+The specifier is whatever step 1 chose: `@originsuite/<brand>-brand` for an Origin
+brand, `@<client>/brand` for a client brand.
 
 No Glyph change is needed to consume a brand — `ThemeProvider` accepts any
 `GlyphTheme`.
@@ -130,11 +138,14 @@ The version starts at `0.0.0`. To cut a brand's first release as `v1.0.0`, put
 The client owns the token values, the assets and the rationale behind them.
 Origin owns Glyph and the token contract.
 
-The package name is a separate question from ownership. It sits under
-`@originsuite` regardless, so a repo handed over on client exit is renamed at
-that point, along with the imports in whatever consumes it. Decided 2026-09-30;
-the alternative (`@<brand>/brand`, which survives a transfer untouched) was
-considered and not taken.
+The package name follows the same split, revised 2026-11-18. An Origin brand sits
+under `@originsuite`; a client brand sits under the client's own scope,
+`@<client>/brand`, so a repo handed over on exit transfers untouched instead of
+being renamed along with its consumers' imports.
+
+The earlier rule put every brand under `@originsuite` and recorded that rename as
+a known cost. The cost is real; the upside it was accepted for — a scope the org
+controls — does nothing for a name that is never resolved against a registry.
 
 ## Repo conventions
 
