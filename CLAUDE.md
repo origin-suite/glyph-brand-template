@@ -53,7 +53,25 @@ Every item below was decided on purpose. Do not "fix" one without reading the ti
   resolver does no extension guessing.
 - **`glyph theme build` emits the CSS**, replacing the `scripts/build-css.mjs` stopgap
   (deleted 2026-09-30). `tsc` cannot emit the `theme.css` the exports map promises, so
-  the build is `tsc -p tsconfig.build.json && glyph theme build`.
+  the build is `tsc -p tsconfig.build.json && glyph theme build --tsconfig
+  tsconfig.build.json`.
+- **`build` must be passed `--tsconfig tsconfig.build.json`; `check` must not be.**
+  The CLI compiles the repo itself and defaults to `tsconfig.json`, which here sets
+  `noEmit: true` on purpose. As of `0.3.0-banana.2` a no-emit config is a hard error
+  (exit 2) instead of a compile that writes nothing — before that, `build` reported
+  success having emitted nothing of its own, and only looked correct because the `tsc`
+  step ahead of it had already filled `dist`. That is the ORI-1245 shape: a pass that
+  depended on what happened to be on disk. `check` needs no flag, because it compiles
+  to a scratch tree and overrides `noEmit` there.
+- **Both `build` and `check` pass `--fetch-globals`, and must keep passing it
+  together.** Without it a `globals` URL on `http(s)://` is not read; it reports
+  `globals-unchecked`, which blocks. A theme declaring no `globals` skips the
+  validator entirely, so the flag is **inert in this repo** — `globals` in
+  `src/brandTheme.ts` is commented out, and a brand pointing it at a local
+  `src/globals.css` resolves to `file:` and needs no fetch either. It is here so a
+  brand that hosts its globals sheet validates rather than blocks, and because the
+  two commands must agree: a flag on one path only is how a PR passes `check` and
+  fails `build`.
 - **The static sheet keys on `[data-theme="<name>"]`, not `.theme-<name>`.** The stopgap
   emitted the class form; the CLI does not, and the CLI is correct — an element carries
   many theme classes (a derived theme's wrapper has its own plus its base's, via
@@ -82,6 +100,14 @@ Every item below was decided on purpose. Do not "fix" one without reading the ti
   `#v1.0.0` install command 404s, the ref differs per brand so no copy-pasteable
   command exists, and `glyph theme init` (ORI-166) has no predictable tag to pin.
   Found the hard way when origin-brand cut its first release (ORI-404).
+- **CI runs `check` *and* `build` on pull requests, not `check` alone.** ORI-425's
+  "done when" reads "`check` on PR and `build` on merge", which taken literally would
+  move the `git diff --exit-code dist` guard off the only event where it can block
+  anything. `dist` is committed, so a stale one has to fail the PR; discovering it on
+  `main` is too late, because release-please tags that commit and the tag is what
+  consumers pin. `check` is therefore wired as the fast validation gate *ahead of*
+  build on both events, which is the "fast fail on a PR before spending the build"
+  the ticket's Trigger section actually asks for.
 - **pnpm settings live in `pnpm-workspace.yaml`** (`allowBuilds: esbuild`), not in
   `package.json`'s `pnpm` field — pnpm 11 stopped reading that field. vitest needs
   esbuild's postinstall, and CI needs the setting committed.
@@ -90,10 +116,17 @@ Every item below was decided on purpose. Do not "fix" one without reading the ti
 
 ```sh
 pnpm install
+pnpm check        # validate every theme, write nothing
 pnpm build        # tsc + generate dist/theme.css
 pnpm test         # vitest run
 pnpm test:watch
 ```
+
+`pnpm check` is the one command that leaves the tree untouched, so it is the one to
+reach for while iterating on a palette. `pnpm build` cannot stand in for it: its
+leading `tsc` emits `dist/*.js` before validation decides whether to write
+`theme.css`, so a build that fails validation leaves `dist` half-updated and the
+freshness diff reporting a change that is only the failure's own residue.
 
 ## Conventions
 
