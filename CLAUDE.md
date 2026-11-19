@@ -67,12 +67,27 @@ Every item below was decided on purpose. Do not "fix" one without reading the ti
   `pnpm build`.
 - **`package.json` is named `@brand/brand`** — a placeholder, and a deliberate
   non-name. Renaming it self-disables the template-only tests, which is intended
-  behaviour, not a side effect. **Rename to `@originsuite/<brand>-brand`** — the scope
-  is always `@originsuite`, including for client brands. Nothing here is published, so
-  the name is never resolved against the registry; it is only an import specifier.
-  Settled 2026-09-30 (ORI-404). The alternative, `@<brand>/brand`, would survive a
-  client handover untouched, which the chosen form does not — a transferred repo gets
-  renamed along with its consumers' imports.
+  behaviour, not a side effect. **The scope follows who can end up owning the repo**,
+  revised 2026-11-18:
+  - **An Origin brand → `@originsuite/<brand>-brand`.** `origin-brand` ships this way.
+    Origin never hands its own brand over, so the scope costs nothing.
+  - **A client brand → `@<client>/brand`.** `baldwin-brand` is `@baldwin/brand`. A
+    client exit is a repo transfer, and this form survives one untouched: nothing of
+    Origin's is left in the client's tree, and no consumer import changes.
+
+  Nothing here is published either way, so the name is never resolved against the
+  registry — it is only ever an import specifier.
+
+  This **reverses** the blanket `@originsuite/<brand>-brand` rule settled 2026-09-30
+  (ORI-404, `c7927dd`). That rule's stated upside was "a scope the org actually
+  controls", which carries no mechanical force for a name that never reaches a
+  registry — no collision, no squatting, nothing to control — while the handover
+  rename it accepted as "a known cost" is real. It was also generalised from
+  `origin-brand`, the one case where handover cannot happen. ORI-406, and ORI-405
+  step 2 after it, had specified a client-owned scope on exactly these grounds
+  beforehand, spelled `@baldwin-co/brand`; that spelling was never implemented.
+  **Three forms therefore appear in the history and only one is current. Do not
+  "fix" `@baldwin/brand` to either of the others.**
 - **`private: true` stays.** Nothing here publishes, and it blocks an accidental
   `npm publish`.
 - **`include-component-in-tag: false` stays.** release-please's manifest mode defaults
