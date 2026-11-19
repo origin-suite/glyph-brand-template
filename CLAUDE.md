@@ -63,6 +63,15 @@ Every item below was decided on purpose. Do not "fix" one without reading the ti
   step ahead of it had already filled `dist`. That is the ORI-1245 shape: a pass that
   depended on what happened to be on disk. `check` needs no flag, because it compiles
   to a scratch tree and overrides `noEmit` there.
+- **Both `build` and `check` pass `--fetch-globals`, and must keep passing it
+  together.** Without it a `globals` URL on `http(s)://` is not read; it reports
+  `globals-unchecked`, which blocks. A theme declaring no `globals` skips the
+  validator entirely, so the flag is **inert in this repo** — `globals` in
+  `src/brandTheme.ts` is commented out, and a brand pointing it at a local
+  `src/globals.css` resolves to `file:` and needs no fetch either. It is here so a
+  brand that hosts its globals sheet validates rather than blocks, and because the
+  two commands must agree: a flag on one path only is how a PR passes `check` and
+  fails `build`.
 - **The static sheet keys on `[data-theme="<name>"]`, not `.theme-<name>`.** The stopgap
   emitted the class form; the CLI does not, and the CLI is correct — an element carries
   many theme classes (a derived theme's wrapper has its own plus its base's, via
