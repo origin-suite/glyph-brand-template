@@ -19,7 +19,7 @@
     "./fonts/*": "./dist/fonts/*"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && glyph theme build --tsconfig tsconfig.build.json --fetch-globals",
+    "build": "glyph theme build --tsconfig tsconfig.build.json --fetch-globals",
     "check": "glyph theme check --fetch-globals",
     "typecheck": "tsc",
     "test": "vitest run",
