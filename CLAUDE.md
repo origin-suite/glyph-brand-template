@@ -51,10 +51,29 @@ Every item below was decided on purpose. Do not "fix" one without reading the ti
   Relative specifiers carry a **`.js` extension** even though the sources are `.ts`:
   pure ESM compiled by `tsc`, which does not rewrite specifiers, and Node's ESM
   resolver does no extension guessing.
-- **`glyph theme build` emits the CSS**, replacing the `scripts/build-css.mjs` stopgap
-  (deleted 2026-09-30). `tsc` cannot emit the `theme.css` the exports map promises, so
-  the build is `tsc -p tsconfig.build.json && glyph theme build --tsconfig
-  tsconfig.build.json`.
+- **`glyph theme build` is the whole build**, replacing the `scripts/build-css.mjs`
+  stopgap (deleted 2026-09-30). `tsc` cannot emit the `theme.css` the exports map
+  promises, so the build is `glyph theme build --tsconfig tsconfig.build.json
+  --fetch-globals` and nothing else.
+
+  **There is no `tsc` step in front of it, and adding one back is duplication.** The
+  build read `tsc -p tsconfig.build.json && glyph theme build …` until 2026-11-19,
+  which compiled the repo twice over the same config — the CLI compiles it itself from
+  the `--tsconfig` it is given. Verified before removal: from an empty `dist` the CLI
+  alone reproduces every committed file byte for byte, `.d.ts` included.
+
+  **The type-error gate is not lost with it.** The CLI's compile fails the build on a
+  type error — exit 2, the offending file and TS code printed, and nothing written to
+  `dist`:
+
+  ```
+  Unable to compile the brand repo at …
+  src/brandTheme.ts(47,7): error TS2322: Type 'number' is not assignable to type 'string'.
+  ```
+
+  `pnpm typecheck` still runs ahead of it in CI, and still earns its place there: it
+  uses `tsconfig.json`, which includes the test files that `tsconfig.build.json`
+  excludes.
 - **`build` must be passed `--tsconfig tsconfig.build.json`; `check` must not be.**
   The CLI compiles the repo itself and defaults to `tsconfig.json`, which here sets
   `noEmit: true` on purpose. As of `0.3.0-banana.2` a no-emit config is a hard error
