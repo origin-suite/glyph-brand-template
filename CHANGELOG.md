@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/origin-suite/glyph-brand-template/compare/v1.1.0...v1.2.0) (2026-11-20)
+
+
+### Miscellaneous Chores
+
+* release 1.2.0 ([414ecba](https://github.com/origin-suite/glyph-brand-template/commit/414ecba70411c94b6e663b4f7e263ecadfe58072))
+
 ## [1.1.0](https://github.com/origin-suite/glyph-brand-template/compare/v1.0.0...v1.1.0) (2026-10-01)
 
 
